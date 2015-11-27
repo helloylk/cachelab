@@ -16,7 +16,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "cache.h"
-#include <math.h>
 
 char RP_STR[RP_MAX+1][32] = {
   "round robin", "random", "LRU (least-recently used)",
@@ -31,6 +30,7 @@ char WP_STR[2][20] = {
 // Helper Functions //
 int isPowerofTwo(uint32 x);
 int getTwoPower(uint32 x);
+int powTwo(uint32 x);
 
 
 Cache* create_cache(uint32 capacity, uint32 blocksize, uint32 ways,
@@ -81,7 +81,7 @@ Cache* create_cache(uint32 capacity, uint32 blocksize, uint32 ways,
   int i;
   (c->set)->setno=0;
   (c->set)->next=NULL;
-  Set* prev=&(c->set)
+  Set* prev=c->set;
   for(i=1; i<sets; i++){
     (c->set)->setno=i;
     (c->set)->next=prev;
@@ -104,7 +104,7 @@ Cache* create_cache(uint32 capacity, uint32 blocksize, uint32 ways,
   return cache;
 }
 
-void delete_cache(Cache *c)
+void delete_cache(Cache *cache)
 {
   cache->s_access=0;
   cache->s_hit=0;
@@ -114,7 +114,7 @@ void delete_cache(Cache *c)
   cache->ways=0;
   cache->sets=0;
   cache->tshift=0;
-  (cache->)->next=NULL;
+  //(cache->)->next=NULL;
 }
 
 void line_access(Cache *c, Line *l)
@@ -151,14 +151,14 @@ void cache_access(Cache *c, uint32 type, uint32 address, uint32 length)
   // 1. compute set & tag
   uint32 tag, set, offset;
   uint32 addr=address;
-  tag=addr/pow(2,c->tshift);
-  addr-=tag*pow(2,c->tshift)
+  tag=addr/powTwo(2,c->tshift);
+  addr-=tag*powTwo(2,c->tshift)
   set=addr/(c->bsize*c->ways);
   addr-=set*(c->bsize*c->ways);
   offset=addr;
   
   // 2. check if we have a cache hit
-  bool miss=0;
+  int miss=0;
   Line *cline;
   cline= line_hitcheck(c, set, tag);
   
@@ -176,7 +176,7 @@ void cache_access(Cache *c, uint32 type, uint32 address, uint32 length)
   // 4. update statistics (# accesses, # hits, # misses)
   c->s_access++;
   if(miss) c->s_miss++;
-  else c->hit++;
+  else c->s_hit++;
 }
 
 //----------------------Helper Function------------------------------------
@@ -195,4 +195,13 @@ int getTwoPower(uint32 x){
     count++;
   }
   return count;
+}
+
+int powTwo(uint32 x){
+  int i;
+  int ans=1;
+  for(i=1;i<=x;i++){
+    ans *= 2;
+  }
+  return ans;
 }
