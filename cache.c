@@ -68,16 +68,25 @@ Cache* create_cache(uint32 capacity, uint32 blocksize, uint32 ways,
   
   // 2. allocate cache and initialize them
   //    - use the above data structures Cache, Set, and Line
-  Cache *cache;
-  cache->s_access=0;
-  cache->s_hit=0;
-  cache->s_miss=0;
-  cache->s_evict=0;
-  cache->bsize=blocksize;
-  cache->ways=ways;
-  cache->sets=sets;
-  cache->tshift=tshift;
-  // TODO
+  Cache *c;
+  c->s_access=0;
+  c->s_hit=0;
+  c->s_miss=0;
+  c->s_evict=0;
+  c->bsize=blocksize;
+  c->ways=ways;
+  c->sets=sets;
+  c->tshift=tshift;
+  
+  int i;
+  (c->set)->setno=0;
+  (c->set)->next=NULL;
+  Set* prev=&(c->set)
+  for(i=1; i<sets; i++){
+    (c->set)->setno=i;
+    (c->set)->next=prev;
+    prev=&(c->set);
+  }
 
   // 3. print cache configuration
   printf("Cache configuration:\n"
@@ -151,7 +160,7 @@ void cache_access(Cache *c, uint32 type, uint32 address, uint32 length)
   // 2. check if we have a cache hit
   bool miss=0;
   Line *cline;
-  cline= line_hitcheck(c,set, tag);
+  cline= line_hitcheck(c, set, tag);
   
   // 3. on a cache miss, find a victim block and allocate according to the
   //    current policies
