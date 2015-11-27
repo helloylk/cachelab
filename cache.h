@@ -47,6 +47,7 @@ typedef unsigned int uint32;
 // (hint: for the simulation you do not need to store the actual data in the
 //        cache, the tag and management information is sufficient)
 typedef struct __line {
+  uint32 lineno;
   uint32 tag;
   uint32 start;
   uint32 end;
@@ -55,6 +56,7 @@ typedef struct __line {
 
 // Set: one set of the cache
 typedef struct __set {
+  uint32 setno;
   Line  *way;                         // cache lines
   struct __set* next;
 } Set;
