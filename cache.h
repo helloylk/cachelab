@@ -47,30 +47,32 @@ typedef unsigned int uint32;
 // (hint: for the simulation you do not need to store the actual data in the
 //        cache, the tag and management information is sufficient)
 typedef struct __line {
-  // TODO
-  // if necessary add more fields
+  uint32 tag;
+  uint32 start;
+  uint32 end;
+  struct __line* next;
 } Line;
 
 // Set: one set of the cache
 typedef struct __set {
   Line  *way;                         // cache lines
-
-  // TODO
-  // if necessary add more fields
+  struct __set* next;
 } Set;
 
 // Cache: the cache
 typedef struct __cache {
-  Set   *set;                         // cache sets
-
+  // Cache info
+  uint32 bsize;                       // blocksize
+  uint32 ways;
+  uint32 sets;
+  uint32 tshift;
+  
+  Set   *set;                         // cache sets  
+  
   uint32 s_access;                    // statistics: number of accesses
   uint32 s_hit;                       // statistics: number of hits
   uint32 s_miss;                      // statistics: number of misses
   uint32 s_evict;                     // statistics: number of evictions
-
-  // TODO
-  // if necessary add more fields
-  //
 } Cache;
 
 //
