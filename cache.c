@@ -48,13 +48,28 @@ Cache* create_cache(uint32 capacity, uint32 blocksize, uint32 ways,
   
   // 1. check cache paramenters
   //    - capacity, blocksize, and ways must be power of 2
-  if(!isPowerofTwo(capacity)) printf("ERROR: capacity must be power of two");
-  if(!isPowerofTwo(blocksize)) printf("ERROR: blocksize must be power of two");
-  if(!isPowerofTwo(ways)) printf("ERROR: ways must be power of two");
+  if(!isPowerofTwo(capacity)){
+    printf("ERROR: capacity must be power of two");
+    exit(0);
+  }
+  if(!isPowerofTwo(blocksize)){
+    printf("ERROR: blocksize must be power of two");
+    exit(0);
+  }
+  if(!isPowerofTwo(ways)){
+    printf("ERROR: ways must be power of two");
+    exit(0);
+  }
   //    - capacity must be >= blocksize
-  if(capacity<blocksize) printf("ERROR: capacity must not be smaller then blocksize");
+  if(capacity<blocksize){
+    printf("ERROR: capacity must not be smaller then blocksize");
+    exit(0);
+  }
   //    - number of ways must be <= the number of blocks
-  if(ways>(capcity/blocksize)) printf("ERROR: ways must not be bigger then # of blocks");
+  if(ways>(capacity/blocksize)){
+    printf("ERROR: ways must not be bigger then # of blocks");
+    exit(0);
+  }
   
   // 2. allocate cache and initialize them
   //    - use the above data structures Cache, Set, and Line
@@ -74,7 +89,7 @@ Cache* create_cache(uint32 capacity, uint32 blocksize, uint32 ways,
          "  replacement:     %s\n"
          "  on write miss:   %s\n"
          "\n",
-         capacity, blocksize, ways, sets, tshift, "RP_STP[rp]", "WP_STP[wp]"); // TODO
+         capacity, blocksize, ways, sets, tshift, RP_STR[rp], WP_STR[wp]);
 
   // 4. return cache
   return cache;
