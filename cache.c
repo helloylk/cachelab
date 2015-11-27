@@ -27,6 +27,10 @@ char WP_STR[2][20] = {
   "write-allocate", "no write-allocate"
 };
 
+// Helper Functions //
+int isPowerofTwo(uint32 x);
+int getTwoPower(uint32 x);
+
 
 Cache* create_cache(uint32 capacity, uint32 blocksize, uint32 ways,
                     uint32 rp, uint32 wp, uint32 verbosity)
@@ -41,9 +45,26 @@ Cache* create_cache(uint32 capacity, uint32 blocksize, uint32 ways,
   //    - use the above data structures Cache, Set, and Line
   // 3. print cache configuration
   // 4. return cache
-
+  
+  // 1. check cache paramenters
+  //    - capacity, blocksize, and ways must be power of 2
+  if(!isPowerofTwo(capacity)) printf("ERROR: capacity must be power of two");
+  if(!isPowerofTwo(blocksize)) printf("ERROR: blocksize must be power of two");
+  if(!isPowerofTwo(ways)) printf("ERROR: ways must be power of two");
+  //    - capacity must be >= blocksize
+  if(capacity<blocksize) printf("ERROR: capacity must not be smaller then blocksize");
+  //    - number of ways must be <= the number of blocks
+  if(ways>(capcity/blocksize)) printf("ERROR: ways must not be bigger then # of blocks");
+  
+  // 2. allocate cache and initialize them
+  //    - use the above data structures Cache, Set, and Line
+  Cache *cache;
 
   // 3. print cache configuration
+  uint32 sets;
+  sets = (capacity/blocksize)/ways;
+  uint32 tshift;
+  tshift = getTwoPower(blocksize)+ getTwoPower(sets);
   printf("Cache configuration:\n"
          "  capacity:        %6u\n"
          "  blocksize:       %6u\n"
@@ -53,10 +74,10 @@ Cache* create_cache(uint32 capacity, uint32 blocksize, uint32 ways,
          "  replacement:     %s\n"
          "  on write miss:   %s\n"
          "\n",
-         0, 0, 0, 0, 0, "", ""); // TODO
+         capacity, blocksize, ways, sets, tshift, "RP_STP[rp]", "WP_STP[wp]"); // TODO
 
   // 4. return cache
-  return NULL;
+  return cache;
 }
 
 void delete_cache(Cache *c)
@@ -99,4 +120,22 @@ void cache_access(Cache *c, uint32 type, uint32 address, uint32 length)
   // 3. on a cache miss, find a victim block and allocate according to the
   //    current policies
   // 4. update statistics (# accesses, # hits, # misses)
+}
+
+//----------------------Helper Function------------------------------------
+
+int isPowerofTwo(uint32 x){
+  /* While x is even and > 1 */
+  while (((x & 1) == 0) && x > 1) x >>= 1;
+  return (x == 1);
+}
+
+int getTwoPower(uint32 x){
+  int count=0;
+  /* While x is even and > 1 */
+  while (((x & 1) == 0) && x > 1){
+    x >>= 1;
+    count++;
+  }
+  return count;
 }
