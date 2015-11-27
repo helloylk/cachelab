@@ -16,6 +16,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "cache.h"
+#include <math.h>
 
 char RP_STR[RP_MAX+1][32] = {
   "round robin", "random", "LRU (least-recently used)",
@@ -35,17 +36,6 @@ int getTwoPower(uint32 x);
 Cache* create_cache(uint32 capacity, uint32 blocksize, uint32 ways,
                     uint32 rp, uint32 wp, uint32 verbosity)
 {
-  // TODO
-  //
-  // 1. check cache parameters
-  //    - capacity, blocksize, and ways must be powers of 2
-  //    - capacity must be > blocksize
-  //    - number of ways must be >= the number of blocks
-  // 2. allocate cache and initialize them
-  //    - use the above data structures Cache, Set, and Line
-  // 3. print cache configuration
-  // 4. return cache
-  
   // 1. check cache paramenters
   //    - capacity, blocksize, and ways must be power of 2
   if(!isPowerofTwo(capacity)){
@@ -71,15 +61,25 @@ Cache* create_cache(uint32 capacity, uint32 blocksize, uint32 ways,
     exit(0);
   }
   
+  // 2-0. calculate necessary informations
+  uint32 sets, tshift;
+  sets = (capacity/blocksize)/ways;
+  tshift = getTwoPower(blocksize)+ getTwoPower(sets);
+  
   // 2. allocate cache and initialize them
   //    - use the above data structures Cache, Set, and Line
   Cache *cache;
+  cache->s_access=0;
+  cache->s_hit=0;
+  cache->s_miss=0;
+  cache->s_evict=0;
+  cache->bsize=blocksize;
+  cache->ways=ways;
+  cache->sets=sets;
+  cache->tshift=tshift;
+  // TODO
 
   // 3. print cache configuration
-  uint32 sets;
-  sets = (capacity/blocksize)/ways;
-  uint32 tshift;
-  tshift = getTwoPower(blocksize)+ getTwoPower(sets);
   printf("Cache configuration:\n"
          "  capacity:        %6u\n"
          "  blocksize:       %6u\n"
@@ -97,18 +97,29 @@ Cache* create_cache(uint32 capacity, uint32 blocksize, uint32 ways,
 
 void delete_cache(Cache *c)
 {
-  // TODO
-  //
-  // clean-up the allocated memory
+  cache->s_access=0;
+  cache->s_hit=0;
+  cache->s_miss=0;
+  cache->s_evict=0;
+  cache->bsize=0;
+  cache->ways=0;
+  cache->sets=0;
+  cache->tshift=0;
+  (cache->)->next=NULL;
 }
 
 void line_access(Cache *c, Line *l)
 {
-  // TODO
-  //
   // update data structures to reflect access to a cache line
 }
 
+// return matching Line if hit, 0 if miss  
+Line line_hitcheck(Cache *c, uint32 set, uint32 tag)
+{
+  while(){
+    if((c->set)->line->
+  }
+}
 
 void line_alloc(Cache *c, Line *l, uint32 tag)
 {
@@ -127,14 +138,36 @@ uint32 set_find_victim(Cache *c, Set *s)
 
 void cache_access(Cache *c, uint32 type, uint32 address, uint32 length)
 {
-  // TODO
-  //
   // simulate a cache access
   // 1. compute set & tag
+  uint32 tag, set, offset;
+  uint32 addr=address;
+  tag=addr/pow(2,c->tshift);
+  addr-=tag*pow(2,c->tshift)
+  set=addr/(c->bsize*c->ways);
+  addr-=set*(c->bsize*c->ways);
+  offset=addr;
+  
   // 2. check if we have a cache hit
+  bool miss=0;
+  Line *cline;
+  cline= line_hitcheck(c,set, tag);
+  
   // 3. on a cache miss, find a victim block and allocate according to the
   //    current policies
+  if(miss){
+    Line *l;
+    l->tag=tag;
+    l->start =offset;
+    l->end = offset+(c->bsize);
+    l->next = NULL;
+    set_find_victim(c,);
+    line_alloc(c,l,tag);
+  }
   // 4. update statistics (# accesses, # hits, # misses)
+  c->s_access++;
+  if(miss) c->s_miss++;
+  else c->hit++;
 }
 
 //----------------------Helper Function------------------------------------
