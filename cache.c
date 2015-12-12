@@ -164,14 +164,15 @@ void line_alloc(Cache *c, Line *l, uint32 tag)
   }
   
   /* Find line with victim tag */
-  while(now->tag!=l->tag){
-    prev=now;
-    now=now->next;
+  Line *nowl=now->way;
+  while(nowl->tag!=l->tag){
+    prev=nolw;
+    now=nowl->next;
   }
   
   /* Replace with new line */
   prew->next=l;
-  l->next=now->next;
+  l->next=nowl->next;
 }
 
 uint32 set_find_victim(Cache *c, Set *s)
