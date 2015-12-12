@@ -156,7 +156,7 @@ int line_access(Cache *c, Line *l)
 void line_alloc(Cache *c, Line *l, uint32 tag)
 {
   Set *now=c->set;
-  Set *prev;
+  Line *prev;
   
   /* Find set */
   while(now->setno!=l->setno){
@@ -171,7 +171,7 @@ void line_alloc(Cache *c, Line *l, uint32 tag)
   }
   
   /* Replace with new line */
-  prew->next=l;
+  prev->next=l;
   l->next=nowl->next;
 }
 
@@ -209,8 +209,8 @@ void cache_access(Cache *c, uint32 type, uint32 address, uint32 length)
   // 3. on a cache miss, find a victim block and allocate according to the
   //    current policies
   if(!hit){
-    uint32 vic_tag;
-    vig_tag=set_find_victim(c,);
+    uint32 vic_tag=0;
+    //vic_tag=set_find_victim(c,);
     line_alloc(c,newl,vic_tag);
   }
   // 4. update statistics (# accesses, # hits, # misses)
