@@ -85,12 +85,14 @@ Cache* create_cache(uint32 capacity, uint32 blocksize, uint32 ways,
   c->tshift=tshift;
 
   c->set->setno=0;
+  c->set->way->next=NULL;
   Set *prev=c->set;
   
   int i; 
   for(i=1; i<sets; i++){
     prev= makeset(prev,i);
   }
+  prev->next=NULL;
 
   // 3. print cache configuration
   printf("Cache configuration:\n"
@@ -110,19 +112,33 @@ Cache* create_cache(uint32 capacity, uint32 blocksize, uint32 ways,
 
 void delete_cache(Cache *c)
 {
-  free(c->);
- 
+  free(c->set->way);
+  free(c->set);
+  free(c);
 }
 
-void line_access(Cache *c, Line *l)
+/*
+ * line_access : update data structures to reflect access to a cache line
+ * return 1 when hit, return 0 when miss
+ */
+int line_access(Cache *c, Line *l)
 {
-  // update data structures to reflect access to a cache line
-}
-
-// return matching Line if hit, 0 if miss  
-void line_hitcheck(Cache *c, uint32 set, uint32 tag)
-{
+  Set *now=c->set;
   
+  /* Find set */
+  if(now->setno!=l->setno){
+    if(now->next==NULL) return 0;  // Miss
+    now=now->next;
+  }
+  
+  /* Search through the lines for tag match */
+  Line *nowl=now->way;
+  if(now1->tag!=l->tag){
+    if(nowl->next=NULL) return 0; // Miss
+    nowl=nowl->next;
+  }
+  
+  return 1;
 }
 
 void line_alloc(Cache *c, Line *l, uint32 tag)
@@ -144,22 +160,28 @@ void cache_access(Cache *c, uint32 type, uint32 address, uint32 length)
 {
   // simulate a cache access
   // 1. compute set & tag
-  uint32 tag, set, offset;
+  uint32 tag, set, offset, offset_max;
   uint32 addr=address;
   tag=addr/powTwo(c->tshift);
   addr-=tag*powTwo(c->tshift);
   set=addr/(c->bsize*c->ways);
   addr-=set*(c->bsize*c->ways);
   offset=addr;
+  offset_max=addr+length;
+  
+  Line *newl=(Line *)malloc(sizeof(Line));
+  newl->setno=set;
+  newl->tag=tag;
+  newl->start=offset;
+  newl->start=offset_max;
   
   // 2. check if we have a cache hit
-  int miss=0;
-  Line *cline;
-  //cline= line_hitcheck(c, set, tag);
+  int hit=0;
+  hit = line_access(c, newl);
   
   // 3. on a cache miss, find a victim block and allocate according to the
   //    current policies
-  if(miss){
+  if(!hit){
     Line *l;
     l->tag=tag;
     l->start =offset;
@@ -170,7 +192,7 @@ void cache_access(Cache *c, uint32 type, uint32 address, uint32 length)
   }
   // 4. update statistics (# accesses, # hits, # misses)
   c->s_access++;
-  if(miss) c->s_miss++;
+  if(!hit) c->s_miss++;
   else c->s_hit++;
 }
 
@@ -201,14 +223,15 @@ int powTwo(uint32 x){
   return ans;
 }
 
+
 Set* makeset(Set* prev, uint32 i){
     Set* s=(Set *)malloc(sizeof(Set));
+    s->way=(Line *)malloc(sizeof(Line));
+    s->way->next=NULL;
     s->setno=i;
     s->next=NULL;
     
-    //printf("make_prev: %d\n", (prev->setno));
     prev->next=s;
     prev=s;
-    printf("makeset: %d\n", s->setno);
     return s;
 }
