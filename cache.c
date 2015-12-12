@@ -16,6 +16,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "cache.h"
+#include <malloc.h>
 
 char RP_STR[RP_MAX+1][32] = {
   "round robin", "random", "LRU (least-recently used)",
@@ -31,6 +32,7 @@ char WP_STR[2][20] = {
 int isPowerofTwo(uint32 x);
 int getTwoPower(uint32 x);
 int powTwo(uint32 x);
+Set* makeset(Set* prev, uint32 i);
 
 
 Cache* create_cache(uint32 capacity, uint32 blocksize, uint32 ways,
@@ -66,9 +68,13 @@ Cache* create_cache(uint32 capacity, uint32 blocksize, uint32 ways,
   sets = (capacity/blocksize)/ways;
   tshift = getTwoPower(blocksize)+ getTwoPower(sets);
   
+ 
   // 2. allocate cache and initialize them
   //    - use the above data structures Cache, Set, and Line
   Cache *c;
+  c=(Cache *)malloc(sizeof(Cache));
+  c->set=(Set *)malloc(sizeof(Set)); 
+  c->set->way=(Line *)malloc(sizeof(Line));
   c->s_access=0;
   c->s_hit=0;
   c->s_miss=0;
@@ -77,15 +83,13 @@ Cache* create_cache(uint32 capacity, uint32 blocksize, uint32 ways,
   c->ways=ways;
   c->sets=sets;
   c->tshift=tshift;
+
+  c->set->setno=0;
+  Set *prev=c->set;
   
-  int i;
-  (c->set)->setno=0;
-  (c->set)->next=NULL;
-  Set* prev=c->set;
+  int i; 
   for(i=1; i<sets; i++){
-    (c->set)->setno=i;
-    (c->set)->next=prev;
-    prev=&(c->set);
+    prev= makeset(prev,i);
   }
 
   // 3. print cache configuration
@@ -101,20 +105,13 @@ Cache* create_cache(uint32 capacity, uint32 blocksize, uint32 ways,
          capacity, blocksize, ways, sets, tshift, RP_STR[rp], WP_STR[wp]);
 
   // 4. return cache
-  return cache;
+  return c;
 }
 
-void delete_cache(Cache *cache)
+void delete_cache(Cache *c)
 {
-  cache->s_access=0;
-  cache->s_hit=0;
-  cache->s_miss=0;
-  cache->s_evict=0;
-  cache->bsize=0;
-  cache->ways=0;
-  cache->sets=0;
-  cache->tshift=0;
-  //(cache->)->next=NULL;
+  free(c->);
+ 
 }
 
 void line_access(Cache *c, Line *l)
@@ -123,11 +120,9 @@ void line_access(Cache *c, Line *l)
 }
 
 // return matching Line if hit, 0 if miss  
-Line line_hitcheck(Cache *c, uint32 set, uint32 tag)
+void line_hitcheck(Cache *c, uint32 set, uint32 tag)
 {
-  while(){
-    if((c->set)->line->
-  }
+  
 }
 
 void line_alloc(Cache *c, Line *l, uint32 tag)
@@ -151,8 +146,8 @@ void cache_access(Cache *c, uint32 type, uint32 address, uint32 length)
   // 1. compute set & tag
   uint32 tag, set, offset;
   uint32 addr=address;
-  tag=addr/powTwo(2,c->tshift);
-  addr-=tag*powTwo(2,c->tshift)
+  tag=addr/powTwo(c->tshift);
+  addr-=tag*powTwo(c->tshift);
   set=addr/(c->bsize*c->ways);
   addr-=set*(c->bsize*c->ways);
   offset=addr;
@@ -160,7 +155,7 @@ void cache_access(Cache *c, uint32 type, uint32 address, uint32 length)
   // 2. check if we have a cache hit
   int miss=0;
   Line *cline;
-  cline= line_hitcheck(c, set, tag);
+  //cline= line_hitcheck(c, set, tag);
   
   // 3. on a cache miss, find a victim block and allocate according to the
   //    current policies
@@ -170,7 +165,7 @@ void cache_access(Cache *c, uint32 type, uint32 address, uint32 length)
     l->start =offset;
     l->end = offset+(c->bsize);
     l->next = NULL;
-    set_find_victim(c,);
+    //set_find_victim(c,);
     line_alloc(c,l,tag);
   }
   // 4. update statistics (# accesses, # hits, # misses)
@@ -201,7 +196,19 @@ int powTwo(uint32 x){
   int i;
   int ans=1;
   for(i=1;i<=x;i++){
-    ans *= 2;
+    ans*=2;
   }
   return ans;
+}
+
+Set* makeset(Set* prev, uint32 i){
+    Set* s=(Set *)malloc(sizeof(Set));
+    s->setno=i;
+    s->next=NULL;
+    
+    //printf("make_prev: %d\n", (prev->setno));
+    prev->next=s;
+    prev=s;
+    printf("makeset: %d\n", s->setno);
+    return s;
 }
