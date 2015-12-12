@@ -120,32 +120,58 @@ void delete_cache(Cache *c)
 /*
  * line_access : update data structures to reflect access to a cache line
  * return 1 when hit, return 0 when miss
+ * 1. Find set
+ * 2. Check through lines for tag match
+ * 3. Check the valid data
  */
 int line_access(Cache *c, Line *l)
 {
   Set *now=c->set;
   
   /* Find set */
-  if(now->setno!=l->setno){
-    if(now->next==NULL) return 0;  // Miss
+  while(now->setno!=l->setno){
     now=now->next;
   }
   
   /* Search through the lines for tag match */
   Line *nowl=now->way;
-  if(now1->tag!=l->tag){
-    if(nowl->next=NULL) return 0; // Miss
+  while(nowl->tag!=l->tag){
+    if(nowl->next==NULL) return 0; // Miss
     nowl=nowl->next;
   }
   
-  return 1;
+  /* If the data in that line matches return hit, else miss */
+  if((nowl->start<=l->start) && (nowl->end>=l->end))
+    return 1;
+  else return 0;
 }
 
+
+/*
+ * line_alloc : update data structures to reflect allocation of a new block into a line
+ * 1. Find set and get in there
+ * 2. Find line with victim tag
+ * 3. Delete it and insert newline 
+ */
 void line_alloc(Cache *c, Line *l, uint32 tag)
 {
-  // TODO
-  //
-  // update data structures to reflect allocation of a new block into a line
+  Set *now=c->set;
+  Set *prev;
+  
+  /* Find set */
+  while(now->setno!=l->setno){
+    now=now->next;
+  }
+  
+  /* Find line with victim tag */
+  while(now->tag!=l->tag){
+    prev=now;
+    now=now->next;
+  }
+  
+  /* Replace with new line */
+  prew->next=l;
+  l->next=now->next;
 }
 
 uint32 set_find_victim(Cache *c, Set *s)
@@ -173,7 +199,7 @@ void cache_access(Cache *c, uint32 type, uint32 address, uint32 length)
   newl->setno=set;
   newl->tag=tag;
   newl->start=offset;
-  newl->start=offset_max;
+  newl->end=offset_max;
   
   // 2. check if we have a cache hit
   int hit=0;
@@ -182,13 +208,9 @@ void cache_access(Cache *c, uint32 type, uint32 address, uint32 length)
   // 3. on a cache miss, find a victim block and allocate according to the
   //    current policies
   if(!hit){
-    Line *l;
-    l->tag=tag;
-    l->start =offset;
-    l->end = offset+(c->bsize);
-    l->next = NULL;
-    //set_find_victim(c,);
-    line_alloc(c,l,tag);
+    uint32 vic_tag;
+    vig_tag=set_find_victim(c,);
+    line_alloc(c,newl,vic_tag);
   }
   // 4. update statistics (# accesses, # hits, # misses)
   c->s_access++;
