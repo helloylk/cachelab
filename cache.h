@@ -47,6 +47,7 @@ typedef unsigned int uint32;
 // (hint: for the simulation you do not need to store the actual data in the
 //        cache, the tag and management information is sufficient)
 typedef struct __line {
+  uint32 setno;
   uint32 lineno;
   uint32 tag;
   uint32 start;
